@@ -5,31 +5,31 @@
  */
 package com.fetherbrik.core.base;
 
+import org.apache.commons.lang3.StringUtils;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Null;
-import org.apache.commons.lang3.StringUtils;
 
 public class Verify {
 
-  @NotNull
-  public static <T> T equal(@Nullable T actual, @Nullable Object expected, @NotNull String message) {
-    if(!Objects.equals(actual, expected)) {
+  @Nonnull
+  public static <T> T equal(@Nullable T actual, @Nullable Object expected, @Nonnull String message) {
+    if (!Objects.equals(actual, expected)) {
       throw new IllegalArgumentException(message);
     }
     return actual;
   }
 
-  @NotNull
+  @Nonnull
   public static <T> T equal(@Nullable T actual,
                             @Nullable Object expected,
-                            @NotNull Class<? extends RuntimeException> exceptionType,
-                            @NotNull String message,
+                            @Nonnull Class<? extends RuntimeException> exceptionType,
+                            @Nonnull String message,
                             Object... messageArgs) {
     if(!Objects.equals(actual, expected)) {
       throw newException(message, exceptionType, messageArgs);
@@ -44,12 +44,12 @@ public class Verify {
    * @throws IllegalArgumentException if minLength &lt; length, maxLength &gt; length, or if minLength &gt; 0 and
    *                                  <code>string</code> is null.
    */
-  @NotNull
-  public static String hasLength(@Nullable String string, int minLength, int maxLength, @NotNull String message) {
-    if(string != null) {
+  @Nonnull
+  public static String hasLength(@Nullable String string, int minLength, int maxLength, @Nonnull String message) {
+    if (string != null) {
       hasMinLength(string, minLength, message);
       hasMaxLength(string, maxLength, message);
-    } else if(minLength > 0) {
+    } else if (minLength > 0) {
       throw new IllegalArgumentException(message);
     }
     return string;
@@ -62,66 +62,66 @@ public class Verify {
    * @throws IllegalArgumentException if minLength &lt; length, maxLength &gt; length, or if minLength &gt; 0 and
    *                                  {@code string} is null.
    */
-  @NotNull
+  @Nonnull
   public static String hasLength(@Nullable String string,
                                  int minLength,
                                  int maxLength,
                                  Class<? extends RuntimeException> exceptionType,
                                  String message,
                                  Object... messageArgs) {
-    if(string != null) {
+    if (string != null) {
       hasMinLength(string, minLength, exceptionType, message, messageArgs);
       hasMaxLength(string, maxLength, exceptionType, message, messageArgs);
-    } else if(minLength > 0) {
+    } else if (minLength > 0) {
       throw new IllegalArgumentException(message);
     }
 
     return string;
   }
 
-  @NotNull
-  public static String hasMaxLength(@Nullable String string, int maxLength, @NotNull String message) {
+  @Nonnull
+  public static String hasMaxLength(@Nullable String string, int maxLength, @Nonnull String message) {
     string = isNotEmpty(string, message);
-    if(string.length() > maxLength) {
+    if (string.length() > maxLength) {
       throw new IllegalArgumentException(message);
     }
     return string;
   }
 
-  @NotNull
+  @Nonnull
   public static String hasMaxLength(String string,
                                     int maxLength,
                                     Class<? extends RuntimeException> exceptionType,
                                     String message,
                                     Object... messageArgs) {
-    if(string.length() > maxLength) {
+    if (string.length() > maxLength) {
       throw newException(message, exceptionType, messageArgs);
     }
     return string;
   }
 
-  @NotNull
-  public static String hasMinLength(@Nullable String string, int minLength, @NotNull String message) {
-    if(string.length() < minLength) {
+  @Nonnull
+  public static String hasMinLength(@Nullable String string, int minLength, @Nonnull String message) {
+    if (string.length() < minLength) {
       throw new IllegalArgumentException(message);
     }
     return string;
   }
 
-  @NotNull
-  public static String hasMinLength(@Null String string,
+  @Nonnull
+  public static String hasMinLength(@Nullable String string,
                                     int minLength,
                                     Class<? extends RuntimeException> exceptionType,
                                     String message,
                                     Object... messageArgs) {
-    if(string.length() < minLength) {
+    if (string != null && string.length() < minLength) {
       throw newException(message, exceptionType, messageArgs);
     }
     return string;
   }
 
-  public static void isFalse(boolean value, @NotNull String message, Object... args) {
-    if(value) {
+  public static void isFalse(boolean value, @Nonnull String message, Object... args) {
+    if (value) {
       throw newException(message, IllegalArgumentException.class, args);
     }
   }
@@ -135,7 +135,7 @@ public class Verify {
     }
   }
 
-  @NotNull
+  @Nonnull
   public static <T> T[] isNotEmpty(@Nullable T[] argument,
                                    Class<? extends RuntimeException> exceptionType,
                                    String message,
@@ -156,7 +156,7 @@ public class Verify {
     return argument;
   }
 
-  @NotNull
+  @Nonnull
   public static <T> Iterable<T> isNotEmpty(@Nullable Iterable<T> argument,
                                            Class<? extends RuntimeException> exceptionType,
                                            String message,
@@ -167,50 +167,50 @@ public class Verify {
     return argument;
   }
 
-  @NotNull
+  @Nonnull
   public static String isNotEmpty(String argument,
                                   Class<? extends RuntimeException> exceptionType,
                                   String message,
                                   Object... messageArgs) {
-    if(StringUtils.isEmpty(argument)) {
+    if (StringUtils.isEmpty(argument)) {
       throw newException(message, exceptionType, messageArgs);
     }
     return argument;
   }
 
-  @NotNull
-  public static String isNotEmpty(@Nullable String argument, @NotNull String message) {
-    if(StringUtils.isEmpty(argument)) {
+  @Nonnull
+  public static String isNotEmpty(@Nullable String argument, @Nonnull String message) {
+    if (StringUtils.isEmpty(argument)) {
       throw new IllegalArgumentException(message);
     }
     return argument;
   }
 
-  @NotNull
-  public static <T> T isNotEqual(@Nullable T actual, @Nullable Object expected, @NotNull String message) {
-    if(Objects.equals(actual, expected)) {
+  @Nonnull
+  public static <T> T isNotEqual(@Nullable T actual, @Nullable Object expected, @Nonnull String message) {
+    if (Objects.equals(actual, expected)) {
       throw new IllegalArgumentException(message);
     }
     return actual;
   }
 
-  @NotNull
-  public static String isNotEqual(String actual, String expected, @NotNull String message) {
-    if(StringUtils.equalsIgnoreCase(actual, expected)) {
+  @Nonnull
+  public static String isNotEqual(String actual, String expected, @Nonnull String message) {
+    if (StringUtils.equalsIgnoreCase(actual, expected)) {
       throw new IllegalArgumentException(message);
     }
     return actual;
   }
 
-  @NotNull
-  public static <T> T isNotNull(@Nullable T argument, @NotNull String message) {
-    if(argument == null) {
+  @Nonnull
+  public static <T> T isNotNull(@Nullable T argument, @Nonnull String message) {
+    if (argument == null) {
       throw new NullPointerException(message);
     }
     return argument;
   }
 
-  @NotNull
+  @Nonnull
   public static <T> T isNotNull(@Nullable T argument,
                                 Class<? extends RuntimeException> exceptionType,
                                 String message,
@@ -221,8 +221,8 @@ public class Verify {
     return argument;
   }
 
-  public static void isNull(@Nullable Object argument, @NotNull String message) {
-    if(argument != null) {
+  public static void isNull(@Nullable Object argument, @Nonnull String message) {
+    if (argument != null) {
       throw new IllegalArgumentException(message);
     }
   }
@@ -236,44 +236,44 @@ public class Verify {
     }
   }
 
-  @NotNull
+  @Nonnull
   public static <T> T isPresent(Optional<T> argument,
                                 Class<? extends RuntimeException> exceptionType,
                                 String message,
                                 Object... messageArgs) {
-    if(!argument.isPresent()) {
+    if (!argument.isPresent()) {
       throw newException(message, exceptionType, messageArgs);
     }
     return argument.get();
   }
 
-  @NotNull
-  public static boolean isTrue(boolean value, @NotNull String message, Object... args) {
-    if(!value) {
+  @Nonnull
+  public static boolean isTrue(boolean value, @Nonnull String message, Object... args) {
+    if (!value) {
       throw newException(message, IllegalArgumentException.class, args);
     }
     return value;
   }
 
-  @NotNull
+  @Nonnull
   public static boolean isTrue(boolean value,
                                Class<? extends RuntimeException> exceptionType,
                                String message,
                                Object... args) {
-    if(!value) {
+    if (!value) {
       throw newException(message, exceptionType, args);
     }
     //noinspection ConstantConditions
     return value;
   }
 
-  @NotNull
-  private static RuntimeException newException(@NotNull String message,
-                                               @NotNull Class<? extends RuntimeException> exceptionType,
+  @Nonnull
+  private static RuntimeException newException(@Nonnull String message,
+                                               @Nonnull Class<? extends RuntimeException> exceptionType,
                                                Object... messageArgs) {
     RuntimeException e;
     message = String.format(message, messageArgs);
-    if(exceptionType == null) {
+    if (exceptionType == null) {
       e = new IllegalArgumentException(message);
     } else {
       try {

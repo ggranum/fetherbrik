@@ -10,9 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fetherbrik.restclient.RestClientConfig;
 import com.fetherbrik.core.exception.FormattedException;
-import com.fetherbrik.core.validation.Validated;
+import com.fetherbrik.restclient.RestClientConfig;
 
 import java.io.IOException;
 
@@ -99,7 +98,7 @@ public final class BasicClientConfiguration implements RestClientConfig {
     }
   }
 
-  public static final class Builder extends Validated {
+  public static final class Builder {
 
     @JsonProperty private String host;
     @JsonProperty private Boolean isHttps = false;
@@ -136,7 +135,8 @@ public final class BasicClientConfiguration implements RestClientConfig {
     }
 
     public BasicClientConfiguration build() {
-      checkValid();
+      /** @todo ggranum: Implement a validation scheme that supports annotations that doesn't
+       * require entire JavaEE library */
       return new BasicClientConfiguration(this);
     }
   }

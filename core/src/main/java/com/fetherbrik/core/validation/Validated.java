@@ -6,26 +6,15 @@
 
 package com.fetherbrik.core.validation;
 
-import java.util.Set;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
+import com.fetherbrik.core.log.Log;
 
 /**
  * @author Geoff M. Granum
+ * @todo ggranum:  Smarter validation exception handling/bundling.
  */
-public abstract class Validated {
+public interface Validated {
 
-  private static final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-
-  public final Set<ConstraintViolation<Validated>> validate() {
-    return validator.validate(this);
-  }
-
-  public final void checkValid() {
-    Set<ConstraintViolation<Validated>> violations = validator.validate(this);
-    if (violations.size() != 0) {
-      throw new ValidationException(this, violations);
-    }
+  default void checkValid() {
+    Log.warn(getClass(), "Not implemented");
   }
 }

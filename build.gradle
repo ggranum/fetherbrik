@@ -4,11 +4,10 @@
  * Copyright (c) 2015 Geoff M. Granum
  */
 
-import com.fetherbrik.gradle.BuildProps
 
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
     }
 }
 
@@ -17,28 +16,12 @@ wrapper {
     gradleVersion = "6.1.1"
 }
 
-apply plugin: BuildProps
-
-
-
-buildProps.source("${project.rootDir}/gradle.local.properties")
-buildProps.required("build.env");
-buildProps.required(["project.version"])
-
-
-buildProps.optional([])
-
-
-
 subprojects {
 
     plugins.withId('java', { _ ->
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     })
-
-
-
 
     configurations.all({
         exclude(module: 'slf4j-simple')
@@ -49,15 +32,19 @@ subprojects {
 
             // force certain versions of dependencies (including transitive)
             //  This appends new forced modules:
-            force("org.hibernate:hibernate-validator:${rootProject['versions.hibernateValidator']}",
-                    "com.google.guava:guava:${rootProject['versions.guava']}",
+            force("com.google.guava:guava:${rootProject['versions.guava']}",
                     "commons-codec:commons-codec:${rootProject['versions.commonsCodec']}",
                     "commons-lang:commons-lang3:${rootProject['versions.commons-lang3']}",
                     "commons-io:commons-io:${rootProject['versions.commonsIo']}",
-                    "org.slf4j:slf4j-api:${rootProject['versions.slf4j']}",
                     "com.google.code.findbugs:jsr305:${rootProject['versions.findbugs']}",
                     "com.fasterxml.jackson.core:jackson-annotations:${rootProject['versions.jackson']}",
+                    "com.fasterxml.jackson.core:jackson-core:${rootProject['versions.jackson']}",
                     "com.fasterxml.jackson.core:jackson-databind:${rootProject['versions.jackson']}",
+                    "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${rootProject['versions.jackson']}",
+                    "org.apache.commons:commons-lang3:${rootProject['versions.commons-lang3']}",
+                    "org.apache.httpcomponents:httpcore:${rootProject['versions.httpcore']}",
+                    "org.jboss.logging:jboss-logging:${rootProject['versions.jbossLogging']}",
+                    "org.slf4j:slf4j-api:${rootProject['versions.slf4j']}",
             )
             //  This would replace existing forced modules with new ones:
             //forcedModules = ['asm:asm-all:3.3.1']

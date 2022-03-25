@@ -11,13 +11,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fetherbrik.core.exception.FormattedException;
-import com.fetherbrik.core.validation.Validated;
-import java.io.IOException;
-import java.util.Optional;
+
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import org.hibernate.validator.constraints.Length;
+import javax.validation.constraints.Size;
+import java.io.IOException;
+import java.util.Optional;
+
 
 /**
  * @author ggranum
@@ -25,10 +26,10 @@ import org.hibernate.validator.constraints.Length;
 @JsonDeserialize(builder = DefaultBootstrapConfiguration.Builder.class)
 public final class DefaultBootstrapConfiguration implements BootstrapConfiguration {
 
-  public final @NotNull @Length(min = 1) String env;
+  public final @NotNull @Size(min = 1) String env;
   public final @Min(1) @Max(65535) int httpPort;
   public final @Min(1) @Max(65535) int httpsPort;
-  public final @Length(min = 1, max = 200) Optional<String> jettyHome;
+  public final @Size(min = 1, max = 200) Optional<String> jettyHome;
 
   private DefaultBootstrapConfiguration(Builder builder) {
     env = builder.env;
@@ -69,9 +70,9 @@ public final class DefaultBootstrapConfiguration implements BootstrapConfigurati
     }
   }
 
-  public static final class Builder extends Validated {
+  public static final class Builder {
 
-    @JsonProperty private @NotNull @Length(min = 1) String env;
+    @JsonProperty private @NotNull @Size(min = 1) String env;
     @JsonProperty private @Min(1) @Max(65535) Integer httpPort = 0;
     @JsonProperty private @Min(1) @Max(65535) Integer httpsPort = 0;
     @JsonProperty private String jettyHome;
@@ -100,7 +101,8 @@ public final class DefaultBootstrapConfiguration implements BootstrapConfigurati
     }
 
     public DefaultBootstrapConfiguration build() {
-      checkValid();
+      /** @todo ggranum: Implement a validation scheme that supports annotations that doesn't
+       * require entire JavaEE library */
       return new DefaultBootstrapConfiguration(this);
     }
   }

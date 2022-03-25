@@ -11,16 +11,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fetherbrik.core.exception.FormattedException;
-import com.fetherbrik.core.validation.Validated;
 import com.fetherbrik.servlet.bootstrap.BootstrapConfiguration;
 import com.google.common.collect.ImmutableSet;
-import java.io.IOException;
-import java.util.Optional;
-import java.util.Set;
+
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import org.hibernate.validator.constraints.Length;
+import javax.validation.constraints.Size;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author ggranum
@@ -28,16 +28,16 @@ import org.hibernate.validator.constraints.Length;
 @JsonDeserialize(builder = HelloWorldConfiguration.Builder.class)
 public final class HelloWorldConfiguration implements BootstrapConfiguration {
 
-  public final @NotNull @Length(min = 1) String env;
+  public final @NotNull @Size(min = 1) String env;
   public final @Min(1) @Max(65535) int httpPort;
   public final @Min(1) @Max(65535) int httpsPort;
   public final Optional<String> dbUrl;
   public final @Min(0) @Max(65535) int dbPort;
-  public final @Length(min = 2, max = 20) String dbName;
+  public final @Size(min = 2, max = 20) String dbName;
   public final boolean wipeDatabase;
   public final Optional<String> adminPassword;
   public final Optional<String> adminName;
-  public final @Length(min = 1, max = 200) Optional<String> jettyHome;
+  public final @Size(min = 1, max = 200) Optional<String> jettyHome;
   public final Set<String> someStringSet;
 
   private HelloWorldConfiguration(Builder builder) {
@@ -87,14 +87,14 @@ public final class HelloWorldConfiguration implements BootstrapConfiguration {
     }
   }
 
-  public static final class Builder extends Validated {
+  public static final class Builder {
 
-    @JsonProperty private @NotNull @Length(min = 1) String env;
+    @JsonProperty private @NotNull @Size(min = 1) String env;
     @JsonProperty private @Min(1) @Max(65535) Integer httpPort = 0;
     @JsonProperty private @Min(1) @Max(65535) Integer httpsPort = 0;
     @JsonProperty private String dbUrl;
     @JsonProperty private @Min(0) @Max(65535) Integer dbPort = 0;
-    @JsonProperty private @Length(min = 2, max = 20) String dbName;
+    @JsonProperty private @Size(min = 2, max = 20) String dbName;
     @JsonProperty private Boolean wipeDatabase = false;
     @JsonProperty private String adminPassword;
     @JsonProperty private String adminName;
@@ -160,7 +160,8 @@ public final class HelloWorldConfiguration implements BootstrapConfiguration {
     }
 
     public HelloWorldConfiguration build() {
-      checkValid();
+      /** @todo ggranum: Implement a validation scheme that supports annotations that doesn't
+       * require entire JavaEE library */
       return new HelloWorldConfiguration(this);
     }
   }
