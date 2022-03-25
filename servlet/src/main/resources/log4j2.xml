@@ -3,10 +3,10 @@
   ~
   ~ Copyright (c) 2019 Geoff M. Granum
   -->
-<Configuration status="info" strict="true" name="UttuLogConfig" monitorInterval="10">
+<Configuration status="info" strict="true" name="FetherBrikLogConfig" monitorInterval="10">
   <Properties>
-    <Property name="basePath">./logs/uttu/</Property>
-    <Property name="baseName">uttu</Property>
+    <Property name="basePath">./logs/fetherbrik/</Property>
+    <Property name="baseName">fetherbrik</Property>
   </Properties>
   <Appenders>
     <Appender type="Console" name="consoleLogger">
@@ -55,7 +55,7 @@
     <Logger name="org.jboss.resteasy.core.ExceptionHandler" level="off" additivity="true"/>
     <Logger name="javax.jaxrs.rs" level="info" additivity="true"/>
     <Logger name="org.jboss.resteasy.plugins.providers.DocumentProvider" level="warn" additivity="true"/>
-    <Logger name="com.geoffgranum" level="trace" additivity="true"/>
+    <Logger name="com.fetherbrik" level="trace" additivity="true"/>
     <Root level="info">
       <AppenderRef ref="fileLogger"/>
       <AppenderRef ref="allLogger"/>

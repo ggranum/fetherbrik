@@ -1,4 +1,4 @@
-= Uttu: Build your web
+= Fetherbrik: A lightweight Java App Server BootStrap
 
 Embedded Jetty. Guice. RESTEasy. Jackson.
 
@@ -21,7 +21,7 @@ Clean, fast, embeddable framework.
    * With Hamcrest and Mockito. Though, no examples of Mockito. Oops.
 * Log4j2
 * MIT Licensed
-* Portable, reusable domain knowledge. Very little custom, exclusive-to-Uttu learning required.
+* Portable, reusable domain knowledge. Very little custom, exclusive-to-FetherBrik learning required.
 
 
 
@@ -43,10 +43,10 @@ It is completely possible to structure your application into a single project
 
 dependencies {
 
-    implementation "com.geoffgranum.uttu:core:${rootProject['versions.uttu']}"
-    implementation "com.geoffgranum.uttu:servlet:${rootProject['versions.uttu']}"
-    // Generally one doesn't add uttu-servlet and uttu-restclient to the same sub-project.
-    // implementation "com.geoffgranum.uttu:restclient:${rootProject['versions.uttu']}"
+    implementation "com.fetherbrik.bs:core:${rootProject['versions.fetherbrik.bs']}"
+    implementation "com.fetherbrik.bs:servlet:${rootProject['versions.fetherbrik.bs']}"
+    // Generally one doesn't add fetherbrik-servlet and fetherbrik-restclient to the same sub-project.
+    // implementation "com.fetherbrik.bs:restclient:${rootProject['versions.fetherbrik.bs']}"
 }
 ----
 

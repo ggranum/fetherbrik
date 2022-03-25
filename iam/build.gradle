@@ -11,7 +11,7 @@ plugins {
 }
 
 version = rootProject['project.version']
-group = 'com.geoffgranum.uttu'
+group = 'com.fetherbrik'
 
 
 dependencies {

@@ -11,7 +11,7 @@ plugins {
 }
 
 version = rootProject['project.version']
-group = 'com.geoffgranum.uttu'
+group = 'com.fetherbrik.bootstrap'
 
 dependencies {
 
@@ -85,13 +85,13 @@ publishing {
             artifactId project.name
             version version
             pom {
-                name = "uttu Servlet"
+                name = "FetherBrik Servlet"
                 description = "Utilities for building RESTful and JSON client-server applications."
-                url = "git@github.com:ggranum/uttu"
+                url = "git@github.com:ggranum/fetherbrik"
                 licenses {
                     license {
                         name = "MIT"
-                        url = "https://github.com/ggranum/uttu"
+                        url = "https://github.com/ggranum/fetherbrik"
                     }
                 }
                 developers {
@@ -102,9 +102,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = "https://github.com/ggranum/uttu.git"
-                    developerConnection = "git@github.com:ggranum/uttu.git"
-                    url = "https://github.com/ggranum/uttu"
+                    connection = "https://github.com/ggranum/fetherbrik.git"
+                    developerConnection = "git@github.com:ggranum/fetherbrik.git"
+                    url = "https://github.com/ggranum/fetherbrik"
                 }
             }
         }

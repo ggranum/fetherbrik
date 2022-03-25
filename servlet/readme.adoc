@@ -1,4 +1,4 @@
-= Uttu Servlet
+= FetherBrik Servlet
 
 A RESTEasy on Jetty based web service framework. Builds into an executable jar file.
 
@@ -17,13 +17,13 @@ A RESTEasy on Jetty based web service framework. Builds into an executable jar f
 
 == Getting started
 
-Uttu Servlet was designed for implementing Rest services. Yes, micro services too. We designed with the expectation of a three-module project:
+FetherBrik Servlet was designed for implementing Rest services. Yes, microservices too. We designed with the expectation of a three-module project:
 
 . App-Common
 . App-Client
 . App-Service
 
-You can see how to generate such a project for IntelliJ by examining the Gradle build for the uttu project. You'll need to borrow from settings.gradle, gradle.properties and the gradle.build files at the root project level, as well as the gradle.build files for each of your three child projects.
+You can see how to generate such a project for IntelliJ by examining the Gradle build for the FetherBrik project. You'll need to borrow from settings.gradle, gradle.properties and the gradle.build files at the root project level, as well as the gradle.build files for each of your three child projects.
 
 
 === Module expectations
@@ -50,4 +50,4 @@ This is a library project. You'll create a 'project dependency' on this module i
 
 === Setting up a new Service
 
-. Create a new Class that extends UttuApplication.
+. Create a new Class that extends FetherBrikApplication.

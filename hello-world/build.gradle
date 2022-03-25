@@ -55,6 +55,6 @@ dependencies {
 
 application {
     applicationName = project.parent.name + '-' + project.name
-    mainClassName = 'com.geoffgranum.uttu.helloworld.HelloWorldApplication'
+    mainClassName = 'fetherbrik.bootstrap.helloworld.HelloWorldApplication'
 }
 

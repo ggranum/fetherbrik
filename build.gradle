@@ -4,7 +4,7 @@
  * Copyright (c) 2015 Geoff M. Granum
  */
 
-import com.geoffgranum.gradle.BuildProps
+import com.fetherbrik.gradle.BuildProps
 
 buildscript {
     repositories {

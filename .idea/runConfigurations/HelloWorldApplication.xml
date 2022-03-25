@@ -3,8 +3,7 @@
     <envs>
       <env name="HELLO_WORLD_ENV" value="dev" />
     </envs>
-    <option name="MAIN_CLASS_NAME" value="com.geoffgranum.uttu.helloworld.HelloWorldApplication" />
-    <module name="uttu.hello-world.main" />
+    <option name="MAIN_CLASS_NAME" value="com.fetherbrik.helloworld.HelloWorldApplication" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/hello-world" />
     <extension name="coverage">
       <pattern>

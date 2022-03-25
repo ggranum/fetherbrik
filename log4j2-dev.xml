@@ -47,7 +47,7 @@
   </Appenders>
   <Loggers>
     <!--  Own stuffs -->
-    <Logger name="com.geoffgranum" level="warn"/>
+    <Logger name="com.fetherbrik" level="warn"/>
     <!-- Root yo. -->
     <Root level="warn">
       <AppenderRef ref="fileLogger"/>
