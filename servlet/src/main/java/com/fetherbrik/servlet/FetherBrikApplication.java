@@ -6,27 +6,27 @@
 
 package com.fetherbrik.servlet;
 
+import com.fetherbrik.core.log.Log;
 import com.fetherbrik.servlet.bootstrap.Bootstrap;
 import com.fetherbrik.servlet.bootstrap.BootstrapConfiguration;
-import com.fetherbrik.core.log.Log;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.EnumSet;
-import java.util.Properties;
-import javax.servlet.DispatcherType;
-
+import com.fetherbrik.servlet.event.*;
+import com.google.common.eventbus.EventBus;
 import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
-import org.eclipse.jetty.server.handler.StatisticsHandler;
+import org.eclipse.jetty.server.handler.*;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle.Listener;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ScheduledExecutorScheduler;
+
+import javax.servlet.DispatcherType;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.EnumSet;
+import java.util.Properties;
 
 import static org.eclipse.jetty.server.CustomRequestLog.EXTENDED_NCSA_FORMAT;
 
@@ -35,10 +35,12 @@ import static org.eclipse.jetty.server.CustomRequestLog.EXTENDED_NCSA_FORMAT;
  */
 public abstract class FetherBrikApplication {
 
+  private final EventBus appBus;
   private final Bootstrap bootstrap;
   private final BootstrapConfiguration baseConfig;
 
-  public FetherBrikApplication(Bootstrap bootstrap, BootstrapConfiguration baseConfig) {
+  public FetherBrikApplication(EventBus appBus, Bootstrap bootstrap, BootstrapConfiguration baseConfig) {
+    this.appBus = appBus;
     this.bootstrap = bootstrap;
     this.baseConfig = baseConfig;
   }
@@ -47,7 +49,16 @@ public abstract class FetherBrikApplication {
     File jettyHomeDir = new File(baseConfig.jettyHome());
     File keystoreFile = new File(jettyHomeDir, "/etc/keystore");
     Properties keystorePasswords = new Properties();
-    keystorePasswords.load(new FileInputStream(new File(jettyHomeDir, "/etc/keystore.properties")));
+    File ksProps = new File(jettyHomeDir, "etc/keystore.properties");
+    try {
+      keystorePasswords.load(new FileInputStream(ksProps));
+    } catch (FileNotFoundException e) {
+      Log.warn(getClass(),
+          e,
+          "No keystore.properties file found at %s." +
+              " Have you created a keystore and saved the passwords to keystore.properties yet? See readme",
+          ksProps.getAbsolutePath());
+    }
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
     threadPool.setMaxThreads(500);
@@ -79,7 +90,12 @@ public abstract class FetherBrikApplication {
 
     // === jetty-https.xml ===
     // SSL Context Factory
-    ServerConnector sslConnector = createSSLConnector(keystoreFile, keystorePasswords, server, httpConfig, baseConfig.httpsPort());
+    ServerConnector sslConnector = createSSLConnector(keystoreFile,
+        keystorePasswords,
+        server,
+        httpConfig,
+        baseConfig.httpsPort());
+    sslConnector.setHost("fakedomain");
     server.addConnector(sslConnector);
 
     // === jetty-stats.xml ===
@@ -88,7 +104,7 @@ public abstract class FetherBrikApplication {
     server.setHandler(stats);
 
     // === jetty-requestlog.xml ===
-//    CustomRequestLog#EXTENDED_NCSA_FORMAT} with a {@link RequestLogWriter
+    //    CustomRequestLog#EXTENDED_NCSA_FORMAT} with a {@link RequestLogWriter
     RequestLogWriter logWriter = new RequestLogWriter(jettyHomeDir.getPath() + "/log/yyyy_mm_dd.request.log");
     logWriter.setFilenameDateFormat("yyyy_MM_dd");
     logWriter.setRetainDays(90);
@@ -104,10 +120,10 @@ public abstract class FetherBrikApplication {
     lowResourcesMonitor.setPeriod(1000);
     lowResourcesMonitor.setLowResourcesIdleTimeout(200);
     lowResourcesMonitor.setMonitorThreads(true);
-    lowResourcesMonitor.setMaxConnections(0);
     lowResourcesMonitor.setMaxMemory(0);
     lowResourcesMonitor.setMaxLowResourcesTime(5000);
     server.addBean(lowResourcesMonitor);
+    server.addBean(new ConnectionLimit(5000, server));
 
     ServletContextHandler root = addServletContext(server);
 
@@ -119,11 +135,11 @@ public abstract class FetherBrikApplication {
     ServletContextHandler root = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
 
     root.addFilter(LoggingGuiceFilter.class, "/*",
-                   EnumSet.of(DispatcherType.FORWARD,
-                              DispatcherType.INCLUDE,
-                              DispatcherType.REQUEST,
-                              DispatcherType.ASYNC,
-                              DispatcherType.ERROR)
+        EnumSet.of(DispatcherType.FORWARD,
+            DispatcherType.INCLUDE,
+            DispatcherType.REQUEST,
+            DispatcherType.ASYNC,
+            DispatcherType.ERROR)
     );
 
     root.addServlet(DefaultServlet.class, "/*");
@@ -157,37 +173,23 @@ public abstract class FetherBrikApplication {
     sslContextFactory.setKeyManagerPassword(keystorePasswords.getProperty("keystore_manager_password"));
     sslContextFactory.setTrustStorePassword(keystorePasswords.getProperty("truststore_password"));
     sslContextFactory.setTrustStorePath(keystoreFile.getPath());
-    sslContextFactory.setExcludeProtocols("SSLv2Hello", "TLSv1");
-    sslContextFactory.setIncludeCipherSuites(".*AES_256_CBC.*",
-                                             ".*AES_128_CBC.*"
-    );
+    sslContextFactory.setExcludeProtocols("SSLv2Hello", "TLSv1", "TLSv1.1");
 
+    //    sslContextFactory.setIncludeCipherSuites(".*AES_256_CBC.*",
+    //                                             ".*AES_128_CBC.*"
+    //    );
+
+    sslContextFactory.setExcludeCipherSuites("^.*_(MD5|SHA|SHA1)$");
     sslContextFactory.setExcludeCipherSuites(
-        "SSL_RSA_WITH_DES_CBC_SHA",
-        "SSL_DHE_RSA_WITH_DES_CBC_SHA",
-        "SSL_DHE_DSS_WITH_DES_CBC_SHA",
+        "^.*_(MD5|SHA|SHA1)$",
         "TLS_RSA_WITH_AES_256_CBC_SHA256",
-        "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
-        "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
-        "TLS_RSA_WITH_AES_256_CBC_SHA",
-        "TLS_RSA_WITH_AES_256_CBC_SHA",
-        "TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA",
-        "TLS_ECDH_RSA_WITH_AES_256_CBC_SHA",
-        "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-        "TLS_DHE_DSS_WITH_AES_256_CBC_SHA",
         "TLS_RSA_WITH_AES_128_CBC_SHA256",
-        "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
-        "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
-        "TLS_RSA_WITH_AES_128_CBC_SHA",
-        "TLS_RSA_WITH_AES_128_CBC_SHA",
-        "TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA",
-        "TLS_ECDH_RSA_WITH_AES_128_CBC_SHA",
-        "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-        "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
         ".*RC4.*",
         ".*EXPORT.*",
         ".*NULL.*",
-        ".*anon.*"
+        ".*anon.*",
+        "TLS_RSA_WITH_AES_256_GCM_SHA384",
+        "TLS_RSA_WITH_AES_128_GCM_SHA256"
 
 
     );
@@ -199,8 +201,8 @@ public abstract class FetherBrikApplication {
     // SSL Connector
     SslConnectionFactory factory = new SslConnectionFactory(sslContextFactory, "http/1.1");
     ServerConnector sslConnector = new ServerConnector(server,
-                                                       factory,
-                                                       new HttpConnectionFactory(httpsConfig));
+        factory,
+        new HttpConnectionFactory(httpsConfig));
     sslConnector.setPort(httpsPort);
     return sslConnector;
   }
@@ -208,6 +210,27 @@ public abstract class FetherBrikApplication {
   private void doStart(final Server server, final ServletContextHandler context) {
     try {
       server.setStopAtShutdown(true);
+      server.addLifeCycleListener(new Listener() {
+        @Override public void lifeCycleStarting(LifeCycle event) {
+          appBus.post(new ServerStartingEvent(event));
+        }
+
+        @Override public void lifeCycleStarted(LifeCycle event) {
+          appBus.post(new ServerReadyEvent(event));
+        }
+
+        @Override public void lifeCycleFailure(LifeCycle event, Throwable cause) {
+          appBus.post(new ServerFailureEvent(event, cause));
+        }
+
+        @Override public void lifeCycleStopping(LifeCycle event) {
+          appBus.post(new ServerStoppingEvent(event));
+        }
+
+        @Override public void lifeCycleStopped(LifeCycle event) {
+          appBus.post(new ServerStoppedEvent(event));
+        }
+      });
       server.start();
       server.join();
     } catch (Exception e) {

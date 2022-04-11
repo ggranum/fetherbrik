@@ -74,10 +74,6 @@ public class JsonConfigurationReader {
         interpolatorSub.setEnableSubstitutionInVariables(true);
     }
 
-    public JsonConfigurationReader(Env env) {
-        this(env, new ObjectMapper());
-    }
-
     public <T> T read(File jsonFile, T typeInstance) {
         //noinspection unchecked
         return (T) this.read(jsonFile, typeInstance.getClass());

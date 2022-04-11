@@ -17,6 +17,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -35,34 +36,37 @@ public class EnvOrFileSourcedConfigurationReader<T extends BootstrapConfiguratio
   private final ObjectMapper mapper;
   private final String environmentPrefix;
   private final Set<String> valueKeys;
-  private final String appName;
+  private final String bootstrapConfigFileName;
   private final Env env;
   private final String configFilesBasePath;
+  private final String bootstrapConfigFileExtension;
 
   /**
    * @param env               The runtime environment - dev, prod, qa, or ci.
    * @param environmentPrefix The prefix to apply when attempting to retrieve values from the system environment.
    *                          For example, setting this to 'MY_APP' will attempt to set the value for 'FOO_VALUE' using
    */
-  public EnvOrFileSourcedConfigurationReader(String configurationName,
+  public EnvOrFileSourcedConfigurationReader(String bootstrapConfigFileName,
+                                             String bootstrapConfigFileExtension,
                                              Env env,
                                              String configFilesBasePath,
                                              String environmentPrefix,
                                              Class<T> model,
                                              ObjectMapper mapper) {
+    this.bootstrapConfigFileName = bootstrapConfigFileName;
+    this.bootstrapConfigFileExtension = bootstrapConfigFileExtension;
     this.configFilesBasePath = configFilesBasePath;
-    this.appName = configurationName;
     this.env = env;
     this.environmentPrefix = environmentPrefix;
     this.model = model;
     this.mapper = mapper;
 
     Set<String> fields = Lists.newArrayList(
-        model.getDeclaredFields())
-                             .stream()
-                             .filter(field -> isPublicFinal(field))
-                             .map(field -> field.getName())
-                             .collect(Collectors.toSet());
+            model.getDeclaredFields())
+        .stream()
+        .filter(field -> isPublicFinal(field))
+        .map(field -> field.getName())
+        .collect(Collectors.toSet());
     this.valueKeys = ImmutableSet.<String>builder().addAll(fields).build();
   }
 
@@ -72,7 +76,7 @@ public class EnvOrFileSourcedConfigurationReader<T extends BootstrapConfiguratio
       for (Map.Entry<String, String> entry : values.entrySet()) {
         b.append('"').append(entry.getKey()).append('"').append(": ").append(entry.getValue()).append(",\n");
       }
-      if(values.size() > 0) {
+      if (values.size() > 0) {
         b.replace(b.length() - 2, b.length(), "");
       }
       b.append("}");
@@ -81,8 +85,8 @@ public class EnvOrFileSourcedConfigurationReader<T extends BootstrapConfiguratio
       throw new InitializationException(e, "Could not read configuration from provided sources.");
     } catch (MismatchedInputException e) {
       throw new InitializationException(e, "Multi-source configuration reader only supports primitive values. "
-                                           + "If you need complex values or structured data, consider adding a secondary configuration file and using a "
-                                           + "JsonConfigurationProvider or JsonConfigurationReader.");
+          + "If you need complex values or structured data, consider adding a secondary configuration file and using a "
+          + "JsonConfigurationProvider or JsonConfigurationReader.");
     } catch (IOException e) {
       Log.trace(getClass(), "Could not parse effective JSON configruation of: \n%s", b.toString());
       throw new InitializationException(e, "Could not read configuration from provided sources.");
@@ -99,17 +103,20 @@ public class EnvOrFileSourcedConfigurationReader<T extends BootstrapConfiguratio
       for (String valueKey : this.valueKeys) {
         envKey = this.getEnvironmentKey(valueKey);
         envValue = System.getenv(envKey);
-        if(envValue != null) {
+        if (envValue != null) {
           Log.debug(getClass(), "\tFound: %s=%s", envKey, envValue);
         } else {
           Log.info(getClass(), "\tMissing: %s", envKey, envValue);
         }
-        if(envValue != null) {
+        if (envValue != null) {
           values.put(valueKey, mapper.writeValueAsString(envValue));
         }
       }
     } catch (JsonProcessingException e) {
-      throw new InitializationException(e, "Could not translate value of environment key-value pair '%s=%s' into JSON value.", envKey, envValue);
+      throw new InitializationException(e,
+          "Could not translate value of environment key-value pair '%s=%s' into JSON value.",
+          envKey,
+          envValue);
     }
     return values;
   }
@@ -124,13 +131,18 @@ public class EnvOrFileSourcedConfigurationReader<T extends BootstrapConfiguratio
 
   private Map<String, String> readFromFile(boolean failIfAbsent) {
     Map<String, String> values = new HashMap<>();
-    String fileName = String.format("%s.%s.json", this.appName, this.env.key);
+    String fileName = String.format("%s.%s.%s", bootstrapConfigFileName, env.key, bootstrapConfigFileExtension);
     File file = new File(this.getBasePath(), fileName);
     Log.info(getClass(), "Checking %s for configuration...", file.getAbsolutePath());
-    if(failIfAbsent && !file.exists()) {
-      throw new InitializationException("Could not find configuration file at path %s", file.getAbsolutePath());
-    } else if(!file.exists()) {
-      Log.info(getClass(), "Could not find configuration file at path %s. Continuing.", file.getAbsolutePath());
+    if (!file.exists()) {
+      file = new File(this.getBasePath(), fileName + '5');// json5 allowed
+    }
+    if (!file.exists()) {
+      if (failIfAbsent) {
+        throw new InitializationException("Could not find configuration file at path %s", file.getAbsolutePath());
+      } else {
+        Log.info(getClass(), "Could not find configuration file at path %s. Continuing.", file.getAbsolutePath());
+      }
     } else {
       Log.info(getClass(), "\t configuration found. Adding '%s' as configuration source.", file.getAbsolutePath());
       JsonConfigurationReader reader = new JsonConfigurationReader(env, mapper);
@@ -141,8 +153,8 @@ public class EnvOrFileSourcedConfigurationReader<T extends BootstrapConfiguratio
         }
       } catch (Exception e) {
         throw new FatalException(e, "Could not load JSON file into string map. "
-                                    + "EnvOrFileSourced Configurations must be simple String-value pair JSON structures. "
-                                    + "No nesting or complex types allowed. ");
+            + "EnvOrFileSourced Configurations must be simple String-value pair JSON structures. "
+            + "No nesting or complex types allowed. ");
       }
     }
     return values;

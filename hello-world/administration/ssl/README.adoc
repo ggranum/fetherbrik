@@ -1,0 +1,125 @@
+= Administration Tools
+
+== SSL Certificates
+
+=== Should I use SSL?
+
+If you have to ask, the answer is yes.
+There are exceptions for something like a member of a microservice swarm that only ever responds to other services within the same local network, for example.
+But if you're deploying those, you've hopefully decided to go read up on network security topology.
+
+To be a touch more pedantic:
+
+If your application is going to serve anything to the internet, it should use SSL.
+
+If your application is going to communicate data that needs to be trusted across internal networks, it should use SSL.
+
+Probably, your application should just use SSL.
+Better to get used to doing SSL right and burn a few extra Whr on your server farm than to use an insecure connection and later have issues with eavesdropping attacks or site spoofing.
+
+That might seem unlikely, and you might think "oh, I'm not sending any secure data", but you might be surprised.
+What if your app sends back something containing URLs, like a contact card that includes a person's website link?
+You scrub the links for bad sites and javascript etc. on the input and output in your app, but the consuming microservice trusts that those links are good and embeds them as-is in a page that is served to consumers.
+If that's a core functionality for your app, an attacker could Man-in-the-middle your app and point those URLs to a malicious site, or embed javascript to cause the page to redirect.
+
+If all your apps are running in the same kubernetes namespace (or whatever), and you're 100% positive that any such attack would mean you're already game over, then by all means, run over HTTP inside the firewall.
+
+=== Self-signed or 'Real' Cert for development?
+
+If you own a domain, or can justify a few dollars to buy one, definitely go for the 'Real' cert route even for development on your private networks.
+It's much more like developing for a normal hosted web app, and you're not wasting time learning how to generate a self-signed Certificate Authority root cert.
+
+However, if you don't own a domain and don't feel like buying one, it's not all that difficult to set up your CA root for local development purposes.
+That said, doing so is not going to scale beyond your local machine.
+Because you really shouldn't be handing a custom CA root cert around for all your teammates to trust.
+Not based on what you learn in this document at least - once you understand how CAs, CSRs and especially public and private keys all work together, then by all means, create have your team accept and trust your custom CA.
+For now, understand that if you mess that up and leak a key, you're exposing your team/company to a risk of site spoofing attacks.
+A domain name can be had for less than a dollar per year, and certs can be had for free from Let's Encrypt.
+Why risk it?
+
+=== Let's Encrypt certs
+
+Assuming your domain is `example.com`, you'll want to reserve a subdomain for yourself and other developers to use on their local machines for running the app server locally.
+If you're emulating multiple domains, you can add those to your 'CSR' (Certificate Signing Request) that you'll 'send' to Let's Encrypt.
+
+While these steps only discuss from the 'single app server on single domain' use case, know that it's possible to do wildcard certs (*.example.com) from Let's Encrypt, as well as requesting multiple subdomain within the same CSR.
+
+The subdomain you choose to use just needs to be something that you and your team won't ever need to access from their development machines.
+Because you'll need to add the hostname to your `/etc/hosts` file and point it to `::1`.
+So something like `develop.example.com` would work... but if you ever wanted to host something public to the internet at that address, it would be a real pain for your developers.
+You don't need to be shockingly careful, but do consider that you might ALSO want to set up a Stage or QA server that can't be accessed from the public internet.
+So a workable pattern might be `dev.int.example.com` and `stage.int.example.com`.
+If you have a fancy office router you can set up custom routing for 'int.example.com. if you don't, then you and anyone who needs to access `stage.int.example.com` can just drop the IP address into their hosts files.
+Whatever.
+
+You'll need to install Certbot, provided by Let's Encrypt: https://certbot.eff.org
+
+Because this will be a 'private' domain, for developers on their machines, you will need to create a DNS TXT record on your domain administration page - that is to say, you need to log in to the account you used to buy the domain, such as Namecheap, Google Domains or, if you support murdering endangered species for fun, GoDaddy.
+
+The Certbot tool will provide a key for you to specify as the TXT record value.
+To get that key, you'll need to run:
+
+`sudo certbot certonly --manual --preferred-challenges=dns -d develop.example.com`
+
+DNS record updates take a while.
+Sometimes it's really fast.
+Sometimes it's the full TTL specified on your domain.
+When you do go to get a cert for the domain you'll be hosting your service at publicly you can (probably) use the faster options that Certbot supports.
+Then again, perhaps not, if you're using Kubernetes and secrets so you can scale out, you'll still have to set up some your own scripts to update your Cert and secret every six months.
+
+Once Certbot has completed its work it will list the directory where it generated the cert you requested.
+There are actually a handful of files.
+
+You'll need to import these into a Java Keystore to serve content over SSL with them.
+We've provided a script for that.
+Assuming the path to your certs is `/etc/letsencrypt/live/dev.int.example.com-0001`, you'll need to cd into the 'Administration' folder and run:
+
+[source:shell]
+----
+> cd ${serverRoot}/administration
+> ./ssl/lets-encrypt/lets-encrypt -p /etc/letsencrypt/live/dev.int.example.com-0001/ -o ../etc
+----
+
+This will produce a keystore file and corresponding passwords file into `${serverRoot}/etc/` folder, using the default names the server will look for.
+
+WARN:: Don't generate the stage and developer certs in the same CSR unless everyone on your team is meant to have access to the 'keys to the kingdom'.
+Whomever has access to the KeyVault used by your team should manage creating the certs and putting them into the vault, and only the `dev.int.example.com` keystore and keystore.properties files should be shared with developers.
+Your stage or QA deployment pipeline will need to be able to pull down the `stage.int.example.com` version of the keystore and properties files.
+
+WARN:: UNDER NO CIRCUMSTANCES should you generate a production wildcard cert and pass the keystore around for developers to use!
+
+INFO:: Developers will need to add the domain to their hosts file.
+Try running `sudo bash -c "echo ::1 dev.int.example.com >> /etc/hosts"`
+
+=== Custom Self-Signed Root CA Route
+
+WARNING:: Save time and lower risk: buy a domain name and take the easy path above!
+
+
+==== Create certs
+
+To get your server to serve content to an SSL secured endpoint (e.g. HTTPS), you will need to:
+1. Create a root CA 2. Create a CSR (Certificate Signing Request) 3. Generate a Cert by signing the CSR with your root CA.
+4. Load the cert and its key into a Java keystore (or your default Java one, but this bootstrap is set up to use a custom Java Keystore) 5. Accept the root cert into the trust chain of import:
+a. Your computer or browser's keychain (for web development)
+b. Some consuming Java application
+c. Whatever.
+SSH.
+Things.
+Stuff.
+
+
+Start by editing `./dev/ssl/configure.ssh` and applying your personal preferences.
+Then you can run './dev/ssl/create-certs.sh`.
+This will create a number of cert files and their keys.
+It will also create a new Java Keystore and load the signed cert into it.
+
+Your server will need the Java `keystore` and `keystore.properties` files copied into `${serverRoot}/etc/`.
+
+===== MacOS
+
+Fortunately, the second script will do that for you (assuming you're on a Mac).
+Run `./ssl/self-signed/install-certs-macOS.sh` to copy the keystore into your server, as well as to install the CA as a trusted root in your Mac's System Keychain.
+This requires sudo access, so the script will prompt for your password.
+You are encouraged to read the script and understand what it is doing.
+

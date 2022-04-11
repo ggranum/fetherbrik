@@ -10,6 +10,7 @@ import java.util.Optional;
 
 /**
  * @author Geoff M. Granum
+ * @todo ggranum: There must be a good Semver parser project out there by now. Use it here.
  */
 public class VersionInfo {
 

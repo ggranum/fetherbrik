@@ -6,9 +6,10 @@
 
 package com.fetherbrik.servlet.bootstrap;
 
-import com.fetherbrik.servlet.initialization.InitializationChain;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fetherbrik.core.base.Initializer;
 import com.fetherbrik.core.base.VersionInfo;
+import com.fetherbrik.servlet.initialization.InitializationChain;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 
@@ -37,7 +38,8 @@ public final class FetherBrikBootstrapModule extends AbstractModule {
     bind(Env.class).toInstance(env);
     bind(Bootstrap.class).toInstance(bootstrap);
     bind(VersionInfo.class).toInstance(applicationVersion);
-    bind(bootstrap.configurationClass).toInstance(bootstrap.baseConfiguration());
+    bind(bootstrap.bootstrapConfigurationClass).toInstance(bootstrap.baseConfiguration());
+    bind(ObjectMapper.class).toProvider(bootstrap.mapperProvider).asEagerSingleton();
     this.bindInit();
   }
 

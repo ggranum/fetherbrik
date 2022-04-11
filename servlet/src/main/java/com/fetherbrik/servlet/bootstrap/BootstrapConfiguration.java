@@ -13,6 +13,8 @@ import com.fetherbrik.servlet.util.StaticFromJson;
  */
 public interface BootstrapConfiguration extends StaticFromJson {
 
+  String hostName();
+
   int httpPort();
 
   int httpsPort();

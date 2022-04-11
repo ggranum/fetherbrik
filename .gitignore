@@ -3,6 +3,7 @@ keystore
 *.cert
 *.crt
 *.pkcs12
+*.pem
 *.key
 keystore.properties
 *.csr

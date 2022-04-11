@@ -6,7 +6,7 @@
 package com.fetherbrik.core.guava.messages;
 
 /**
- * Mostly just so that we can find all of  the Guava messages in the system with a single 'find usages'.
+ * Mostly just so that we can find all the Guava messages in the system with a single 'find usages'.
  */
 public abstract class StatusMessage {
 

@@ -30,11 +30,13 @@ public final class DefaultBootstrapConfiguration implements BootstrapConfigurati
   public final @Min(1) @Max(65535) int httpPort;
   public final @Min(1) @Max(65535) int httpsPort;
   public final @Size(min = 1, max = 200) Optional<String> jettyHome;
+  private Optional<String> hostName;
 
   private DefaultBootstrapConfiguration(Builder builder) {
     env = builder.env;
     httpPort = builder.httpPort;
     httpsPort = builder.httpsPort;
+    hostName = Optional.ofNullable(builder.hostName);
     jettyHome = Optional.ofNullable(builder.jettyHome);
   }
 
@@ -44,6 +46,10 @@ public final class DefaultBootstrapConfiguration implements BootstrapConfigurati
     } catch (JsonProcessingException e) {
       throw new FormattedException(e, "Could not write FetherBrikBootstrapConfiguration as Json");
     }
+  }
+
+  @Override public String hostName() {
+    return hostName.orElse("127.0.0.1");
   }
 
   @Override
@@ -72,6 +78,7 @@ public final class DefaultBootstrapConfiguration implements BootstrapConfigurati
 
   public static final class Builder {
 
+    @JsonProperty private String hostName;
     @JsonProperty private @NotNull @Size(min = 1) String env;
     @JsonProperty private @Min(1) @Max(65535) Integer httpPort = 0;
     @JsonProperty private @Min(1) @Max(65535) Integer httpsPort = 0;

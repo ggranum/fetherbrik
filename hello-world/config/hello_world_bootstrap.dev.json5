@@ -1,0 +1,10 @@
+{
+  //  JSON5 allows comments. Jackson supports most of the JSON5 spec, with the correct flags on your Object Mapper.
+  "hostname":      "dev.int.fetherbrik.com",
+  "httpPort":      4280,
+  "httpsPort":     4281,
+  "someStringSet": [
+    "value 1",
+    "Value 2"
+  ]
+}

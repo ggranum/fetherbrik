@@ -8,23 +8,19 @@ package com.fetherbrik.core.security;
 import com.fetherbrik.core.exception.FatalException;
 import com.fetherbrik.core.log.Log;
 import com.google.common.base.Charsets;
-import java.security.AlgorithmParameters;
-import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.spec.KeySpec;
-import java.util.Arrays;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
+import java.security.*;
+import java.security.spec.KeySpec;
+import java.util.Arrays;
 
 /**
  * @author Geoff Granum
@@ -55,6 +51,7 @@ public final class EncryptionUtil {
       throw new RuntimeException(msg, e);
     }
   }
+
   public static void checkJavaCryptographicExtensionsInstalled() {
     String anyValue = "randomMeaninglessString";
     SecretKey secretKey;
